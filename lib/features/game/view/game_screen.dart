@@ -12,10 +12,12 @@ import '../widgets/game_canvas.dart';
 import '../widgets/game_hud.dart';
 import 'game_over_screen.dart';
 import 'splash_screen.dart';
+import '../../../core/utils/sound_service.dart';
 
 /// Root game screen: owns BLoC provider, controller, gesture handling.
 class GameScreen extends StatefulWidget {
-  const GameScreen({super.key});
+  final int initialLevel;
+  const GameScreen({super.key, this.initialLevel = 1});
 
   @override
   State<GameScreen> createState() => _GameScreenState();
@@ -47,7 +49,7 @@ class _GameScreenState extends State<GameScreen>
       // Start the game on first layout
       if (!_started) {
         _started = true;
-        _bloc.add(StartGameEvent(size));
+        _bloc.add(LoadLevelEvent(level: widget.initialLevel, screenSize: size));
         _controller.start(this);
       }
     }
@@ -70,19 +72,24 @@ class _GameScreenState extends State<GameScreen>
 
   void _onTap() {
     final state = _bloc.state;
-    if (state is GamePlayingState && !state.data.ballLaunched) {
-      _bloc.add(const LaunchBallEvent());
+    if (state is GamePlayingState) {
+      if (!state.data.ballLaunched) {
+        _bloc.add(const LaunchBallEvent());
+      } else if (state.data.isSticky) {
+        _bloc.add(const ReleaseBallEvent());
+      }
     }
   }
 
   void _restartGame() {
-    _bloc.add(RestartGameEvent(_screenSize));
+    _bloc.add(LoadLevelEvent(level: widget.initialLevel, screenSize: _screenSize));
     _controller.setScreenSize(_screenSize);
     _controller.start(this); // start re-creates the ticker safely
   }
 
   void _nextLevel(GameStateModel data) {
     _bloc.add(NextLevelEvent(screenSize: _screenSize, currentData: data));
+    _controller.start(this);
   }
 
   void _goToMenu() {
@@ -133,6 +140,7 @@ class _GameScreenState extends State<GameScreen>
                   if (state is GamePausedState)
                     _PauseOverlay(
                       onResume: () => _bloc.add(const ResumeGameEvent()),
+                      onExit: _goToMenu,
                     ),
 
                   // Game over overlay
@@ -162,10 +170,16 @@ class _GameScreenState extends State<GameScreen>
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-class _PauseOverlay extends StatelessWidget {
+class _PauseOverlay extends StatefulWidget {
   final VoidCallback onResume;
-  const _PauseOverlay({required this.onResume});
+  final VoidCallback onExit;
+  const _PauseOverlay({required this.onResume, required this.onExit});
 
+  @override
+  State<_PauseOverlay> createState() => _PauseOverlayState();
+}
+
+class _PauseOverlayState extends State<_PauseOverlay> {
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -188,7 +202,7 @@ class _PauseOverlay extends StatelessWidget {
             ),
             const SizedBox(height: 32),
             GestureDetector(
-              onTap: onResume,
+              onTap: widget.onResume,
               child: Container(
                 padding: const EdgeInsets.symmetric(
                     horizontal: 32, vertical: 14),
@@ -209,9 +223,48 @@ class _PauseOverlay extends StatelessWidget {
                 ),
               ),
             ),
+            const SizedBox(height: 24),
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  SoundService.toggleMute();
+                });
+              },
+              child: Icon(
+                SoundService.isMuted 
+                    ? Icons.volume_off 
+                    : Icons.volume_up,
+                color: Colors.white54,
+                size: 32,
+              ),
+            ),
+            const SizedBox(height: 24),
+            GestureDetector(
+              onTap: widget.onExit,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 32, vertical: 14),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                      color: ColorConstants.neonPink.withValues(alpha: 0.5)),
+                  color: ColorConstants.neonPink.withValues(alpha: 0.08),
+                ),
+                child: Text(
+                  'EXIT TO MENU',
+                  style: TextStyle(
+                    color: ColorConstants.neonPink,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 2,
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 }
+
