@@ -65,3 +65,15 @@ class CollectPowerUpEvent extends GameEvent {
   @override
   List<Object?> get props => [type];
 }
+
+class ReleaseBallEvent extends GameEvent {
+  const ReleaseBallEvent();
+}
+
+class LoadLevelEvent extends GameEvent {
+  final int level;
+  final Size screenSize;
+  const LoadLevelEvent({required this.level, required this.screenSize});
+  @override
+  List<Object?> get props => [level, screenSize];
+}

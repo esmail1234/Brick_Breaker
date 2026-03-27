@@ -1,7 +1,17 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
-enum PowerUpType { expandPaddle, shrinkPaddle, slowBall, multiBall, shield }
+enum PowerUpType {
+  expandPaddle,
+  shrinkPaddle,
+  slowBall,
+  multiBall,
+  shield,
+  laserPaddle,
+  fireball,
+  catchBall,
+  extraLife
+}
 
 /// Immutable model for a falling power-up pickup.
 class PowerUpModel extends Equatable {

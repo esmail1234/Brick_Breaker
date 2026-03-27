@@ -16,9 +16,11 @@ class GameController {
   void setScreenSize(Size size) => _screenSize = size;
 
   void start(TickerProvider vsync) {
-    _ticker?.dispose();
+    _ticker ??= vsync.createTicker(_onTick);
     _lastTime = Duration.zero;
-    _ticker = vsync.createTicker(_onTick)..start();
+    if (_ticker?.isTicking == false) {
+      _ticker?.start();
+    }
   }
 
   void _onTick(Duration elapsed) {

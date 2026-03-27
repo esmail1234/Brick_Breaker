@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/color_constants.dart';
-import 'game_screen.dart';
+import 'level_selection_screen.dart';
 
 /// Animated splash screen with neon glow logo and tap-to-start button.
 class SplashScreen extends StatefulWidget {
@@ -48,7 +48,7 @@ class _SplashScreenState extends State<SplashScreen>
         transitionDuration: const Duration(milliseconds: 500),
         pageBuilder: (_, anim, __) => FadeTransition(
           opacity: anim,
-          child: const GameScreen(),
+          child: const LevelSelectionScreen(),
         ),
       ),
     );
@@ -166,7 +166,7 @@ class _SplashScreenState extends State<SplashScreen>
                   ),
                   const SizedBox(height: 60),
                   Text(
-                    'BLoC + MVC Architecture',
+                    'Developed by ESMAIL',
                     style: GoogleFonts.orbitron(
                       fontSize: 10,
                       color: Colors.white24,
